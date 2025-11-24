@@ -1,0 +1,94 @@
+TAX_RATE = 0.12
+DISCOUNT_LIMIT = 2000
+DISCOUNT_RATE = 0.05
+
+ids = [101, 102, 103, 104, 105]
+names = ["Biscuits", "Milk 1L", "Bread", "Eggs (6)", "Soap"]
+prices = [40.0, 60.0, 35.0, 70.0, 30.0]
+stock = [50, 30, 40, 20, 60]
+
+def show_items():
+    print("ID   Name           Price   Stock")
+    for i in range(len(ids)):
+        print(ids[i], names[i].ljust(14), prices[i], stock[i])
+
+def find_item(pid):
+    for i in range(len(ids)):
+        if ids[i] == pid:
+            return i
+    return -1
+
+def add_item(cart, pid, qty):
+    idx = find_item(pid)
+    if idx == -1:
+        return False
+    if qty <= 0 or qty > stock[idx]:
+        return False
+    cart.append((pid, qty))
+    stock[idx] -= qty
+    return True
+
+def calc_bill(cart):
+    subtotal = 0
+    lines = []
+    for p, q in cart:
+        idx = find_item(p)
+        price = prices[idx]
+        line = price * q
+        lines.append((names[idx], q, price, line))
+        subtotal += line
+    discount = 0
+    if subtotal >= DISCOUNT_LIMIT:
+        discount = subtotal * DISCOUNT_RATE
+    tax = (subtotal - discount) * TAX_RATE
+    total = subtotal - discount + tax
+    return lines, subtotal, discount, tax, total
+
+def print_bill(customer, lines, subtotal, discount, tax, total):
+    print("=====================================")
+    print("CASHIER RECEIPT")
+    print("Customer:", customer)
+    print("-------------------------------------")
+    print("Item              Qty   Price   Line")
+    for name, q, price, line in lines:
+        print(name.ljust(16), str(q).rjust(3), f"{price:.2f}", f"{line:.2f}")
+    print("-------------------------------------")
+    print("Subtotal:", subtotal)
+    print("Discount:", discount)
+    print("Tax:", tax)
+    print("TOTAL:", total)
+    print("=====================================")
+
+def run():
+    while True:
+        cart = []
+        name = input("Customer name (or exit): ")
+        if name.lower() == "exit":
+            break
+        while True:
+            show_items()
+            cmd = input("Enter item ID or 'done': ")
+            if cmd.lower() == "done":
+                break
+            try:
+                pid = int(cmd)
+            except:
+                print("invalid")
+                continue
+            try:
+                qty = int(input("Quantity: "))
+            except:
+                print("invalid")
+                continue
+            ok = add_item(cart, pid, qty)
+            if not ok:
+                print("Error adding item")
+            else:
+                print("added")
+        if len(cart) == 0:
+            print("no items")
+            continue
+        lines, subtotal, discount, tax, total = calc_bill(cart)
+        print_bill(name, lines, subtotal, discount, tax, total)
+
+run()
